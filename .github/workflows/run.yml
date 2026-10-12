@@ -1,0 +1,31 @@
+name: magicrew-smoke
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Environment
+        run: |
+          echo "== os =="; uname -srm
+          echo "== docker =="; docker version
+          docker info | sed -n '1,20p'
+      - name: Fetch installer
+        run: |
+          curl -fsSL https://getmagicrew.sh -o /tmp/magicrew.sh
+          wc -l /tmp/magicrew.sh
+      - name: Install magicrew
+        env:
+          MAGICREW_CLI_LANG: en
+          MAGICREW_CLI_INSTALL_DIR: /home/runner/.local/bin
+        run: |
+          bash /tmp/magicrew.sh
+      - name: Post-check
+        if: always()
+        run: |
+          echo "== ~/.local/bin =="; ls -la "$HOME/.local/bin" || true
+          echo "== magicrew =="; "$HOME/.local/bin/magicrew" --help || true
+          echo "== config =="; ls -la "$HOME/.config/magicrew" || true
